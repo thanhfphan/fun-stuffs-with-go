@@ -18,6 +18,7 @@ func main() {
 	var userSearch string
 	flag.StringVar(&userSearch, "name", "name", "input the name")
 	flag.Parse()
+	//FIXME: check err
 
 	fmt.Sprintf("user enter %s\n", userSearch)
 

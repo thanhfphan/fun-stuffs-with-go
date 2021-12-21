@@ -21,6 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TODO: replace with beauty picture instead the red square :D
 	content := ""
 	for h := 0; h < height; h++ {
 		for w := 0; w < width; w++ {
