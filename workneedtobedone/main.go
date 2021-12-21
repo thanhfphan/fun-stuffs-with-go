@@ -34,45 +34,48 @@ func main() {
 		log.Fatalf("look like this is not git folder=%s", projectPath)
 	}
 
-	var workNeedToBeDone []*Work
-	for _, fname := range readAllFileName(projectPath) {
-		fullPath := projectPath + "/" + fname
-		file, err := os.Open(fullPath)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-
-		scanner := bufio.NewScanner(file)
-		line := 1
-		for scanner.Scan() {
-			for _, label := range labels {
-				regex := regexp.MustCompile(fmt.Sprintf(".*(%s|%s):?(.*)", label, strings.ToLower(label)))
-				match := regex.FindStringSubmatch(scanner.Text())
-				if len(match) == 0 {
-					continue
-				}
-				content := ""
-				if len(match) > 2 {
-					content = match[2]
-				}
-				workNeedToBeDone = append(workNeedToBeDone, &Work{
-					Prefix:       label,
-					LineNumber:   line,
-					Content:      content,
-					FullFileName: fullPath,
-					FileName:     fname,
-				})
+	c := make(chan *Work)
+	go func() {
+		for _, fname := range readAllFileName(projectPath) {
+			fullPath := projectPath + "/" + fname
+			file, err := os.Open(fullPath)
+			if err != nil {
+				log.Print(err)
+				return
 			}
-			line = line + 1
-		}
-		file.Close()
-	}
 
-	for _, item := range workNeedToBeDone {
+			scanner := bufio.NewScanner(file)
+			line := 1
+			for scanner.Scan() {
+				for _, label := range labels {
+					regex := regexp.MustCompile(fmt.Sprintf(".*(%s|%s):?(.*)", label, strings.ToLower(label)))
+					match := regex.FindStringSubmatch(scanner.Text())
+					if len(match) == 0 {
+						continue
+					}
+					content := ""
+					if len(match) > 2 {
+						content = match[2]
+					}
+					c <- &Work{
+						Prefix:       label,
+						LineNumber:   line,
+						Content:      content,
+						FullFileName: fullPath,
+						FileName:     fname,
+					}
+				}
+				line = line + 1
+			}
+			file.Close()
+		}
+		close(c)
+	}()
+
+	for range c {
+		item := <-c
 		log.Printf("%s:%d %s: %s\n", item.FileName, item.LineNumber, item.Prefix, item.Content)
 	}
-
 }
 
 func readAllFileName(folder string) []string {
