@@ -35,35 +35,38 @@ func main() {
 	}
 
 	var workNeedToBeDone []*Work
-	for _, fileName := range readAllFileName(projectPath) {
-		fullPath := projectPath + "/" + fileName
+	for _, fname := range readAllFileName(projectPath) {
+		fullPath := projectPath + "/" + fname
 		file, err := os.Open(fullPath)
 		if err != nil {
 			log.Print(err)
-			continue
+			return
 		}
-		defer file.Close()
 
 		scanner := bufio.NewScanner(file)
 		line := 1
 		for scanner.Scan() {
 			for _, label := range labels {
-				regex := regexp.MustCompile(fmt.Sprintf(".*(%s):?(.*)", label))
+				regex := regexp.MustCompile(fmt.Sprintf(".*(%s|%s):?(.*)", label, strings.ToLower(label)))
 				match := regex.FindStringSubmatch(scanner.Text())
-				if len(match) < 3 {
+				if len(match) == 0 {
 					continue
+				}
+				content := ""
+				if len(match) > 2 {
+					content = match[2]
 				}
 				workNeedToBeDone = append(workNeedToBeDone, &Work{
 					Prefix:       label,
 					LineNumber:   line,
-					Content:      match[2],
+					Content:      content,
 					FullFileName: fullPath,
-					FileName:     fileName,
+					FileName:     fname,
 				})
 			}
 			line = line + 1
 		}
-
+		file.Close()
 	}
 
 	for _, item := range workNeedToBeDone {
