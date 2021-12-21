@@ -1,2 +1,2 @@
-# fun-stuffs-with-go
-Fun stuffs with go
+
+The things I found interesting
