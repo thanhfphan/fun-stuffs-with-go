@@ -8,4 +8,4 @@ Implement autocomplete using Prefix Tree(trie)
 go run main.go --name=Phan
 ```
 
-![](./triedemo.png)
+![Demo](./triedemo.png)
