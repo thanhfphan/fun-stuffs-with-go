@@ -74,7 +74,9 @@ func main() {
 
 	for range c {
 		item := <-c
-		log.Printf("%s:%d %s: %s\n", item.FileName, item.LineNumber, item.Prefix, item.Content)
+		if item != nil {
+			log.Printf("%s:%d %s: %s\n", item.FileName, item.LineNumber, item.Prefix, item.Content)
+		}
 	}
 }
 
