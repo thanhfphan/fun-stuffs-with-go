@@ -34,7 +34,11 @@ func (v *Vector3) Divide(t float64) *Vector3 {
 }
 
 func (v *Vector3) Length() float64 {
-	return math.Sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+	return math.Sqrt(v.LengthSquare())
+}
+
+func (v *Vector3) LengthSquare() float64 {
+	return v.x*v.x + v.y*v.y + v.z*v.z
 }
 
 func (v *Vector3) UnitVector() *Vector3 {
@@ -69,37 +73,43 @@ func (r *Ray) At(t float64) *Point3 {
 	}
 }
 
-func RayColor(r *Ray) *Color {
-	unitVector := r.direction.UnitVector()
-	// fmt.Print(unitVector.ToString())
-	t := 0.5 * (unitVector.y + 1.0)
-
-	color1 := &Color{1.0, 1.0, 1.0}
-	color1.x = color1.x * (1.0 - t)
-	color1.y = color1.y * (1.0 - t)
-	color1.z = color1.z * (1.0 - t)
-	color2 := &Color{0.5, 0., 1.0}
-	color2.x = color2.x * t
-	color2.y = color2.y * t
-	color2.z = color2.z * t
-
-	result := &Color{
-		x: color1.x - color2.x,
-		y: color1.y - color2.y,
-		z: color1.z - color2.z,
+func HitSphere(center *Point3, radius float64, r *Ray) float64 {
+	oc := MinusVectors((*Vector3)(r.origin), (*Vector3)(center))
+	a := r.direction.LengthSquare()
+	halfB := Dot(oc, r.direction)
+	c := oc.LengthSquare() - radius*radius
+	discriminant := halfB*halfB - a*c
+	if discriminant < 0 {
+		return -1.0
 	}
-	return result
+
+	return (-halfB - math.Sqrt(discriminant)) / a
+}
+
+func RayColor(r *Ray) *Color {
+	t := HitSphere(&Point3{0, 0, -1}, 0.5, r)
+	if t > 0.0 {
+		n := MinusVectors((*Vector3)(r.At(t)), &Vector3{0, 0, -1})
+		tmp := &Vector3{n.x + 1, n.y + 1, n.z + 1}
+		tmp = tmp.Multiply(0.5)
+		return (*Color)(tmp)
+	}
+	unitDirection := r.direction.UnitVector()
+	t = 0.5 * (unitDirection.y + 1.0)
+	color1 := &Color{1.0, 1.0, 1.0}
+	color2 := &Color{0.5, 0.7, 1.0}
+
+	a := MultiplyVectorByT((*Vector3)(color1), (1.0 - t))
+	b := MultiplyVectorByT((*Vector3)(color2), t)
+	result := AddVectors(a, b)
+	return (*Color)(result)
 }
 
 func DivideVectorByT(v *Vector3, t float64) *Vector3 {
-	return &Vector3{
-		x: v.x / t,
-		y: v.y / t,
-		z: v.z / t,
-	}
+	return MultiplyVectorByT(v, 1/t)
 }
 
-func MutilplyVectorByT(v *Vector3, t float64) *Vector3 {
+func MultiplyVectorByT(v *Vector3, t float64) *Vector3 {
 	return &Vector3{
 		x: v.x * t,
 		y: v.y * t,
@@ -112,7 +122,7 @@ func MinusVectors(v *Vector3, params ...*Vector3) *Vector3 {
 	for _, p := range params {
 		result.x = result.x - p.x
 		result.y = result.y - p.y
-		result.z = result.y - p.z
+		result.z = result.z - p.z
 	}
 
 	return result
@@ -123,14 +133,25 @@ func AddVectors(v *Vector3, params ...*Vector3) *Vector3 {
 	for _, p := range params {
 		result.x = result.x + p.x
 		result.y = result.y + p.y
-		result.z = result.y + p.z
+		result.z = result.z + p.z
 	}
 
 	return result
 }
 
-func main() {
+func Dot(u, v *Vector3) float64 {
+	return u.x*v.x + u.y*v.y + u.z*v.z
+}
 
+func Cross(u, v *Vector3) *Vector3 {
+	return &Vector3{
+		x: u.y*v.z - u.z*v.y,
+		y: u.z*v.x - u.x*v.z,
+		z: u.x*v.y - u.y*v.x,
+	}
+}
+
+func main() {
 	// Image
 	aspectRatio := 16.0 / 9.0
 	imageWidth := 400
@@ -146,16 +167,17 @@ func main() {
 	vertical := Vector3{0, viewportHeight, 0}
 	lowerLeftCorner := MinusVectors((*Vector3)(origin), DivideVectorByT(&horizontal, 2), DivideVectorByT(&vertical, 2), &Vector3{0, 0, focalLength})
 
-	fmt.Printf("P3\n%d %d\n255\n", imageHeight, imageWidth)
+	fmt.Printf("P3\n%d %d\n255\n", imageWidth, imageHeight)
 
 	for h := imageHeight - 1; h >= 0; h-- {
 		for w := 0; w < imageWidth; w++ {
 			u := float64(w) / float64(imageWidth-1)
 			v := float64(h) / float64(imageHeight-1)
-			tmp := AddVectors(lowerLeftCorner, MutilplyVectorByT(&horizontal, u), MutilplyVectorByT(&vertical, v))
+			tmp := AddVectors(lowerLeftCorner, MultiplyVectorByT(&horizontal, u), MultiplyVectorByT(&vertical, v))
+			direction := MinusVectors(tmp, (*Vector3)(origin))
 			ray := &Ray{
 				origin:    origin,
-				direction: MinusVectors(tmp, (*Vector3)(origin)),
+				direction: direction,
 			}
 			color := RayColor(ray)
 			fmt.Print(color.Write())
