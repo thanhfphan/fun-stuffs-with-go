@@ -151,6 +151,75 @@ func Cross(u, v *Vector3) *Vector3 {
 	}
 }
 
+type HitRecord struct {
+	p           *Point3
+	normal      *Vector3
+	t           float64
+	isFrontFace bool
+}
+
+func (h *HitRecord) SetFaceNormal(r *Ray, outwardNormal *Vector3) {
+	h.isFrontFace = Dot(r.direction, outwardNormal) < 0
+	h.normal = outwardNormal
+	if !h.isFrontFace {
+		h.normal = MultiplyVectorByT(outwardNormal, -1)
+	}
+}
+
+type Sphere struct {
+	p, center *Point3
+	normal    *Vector3
+	t, radius float64
+}
+
+func (s *Sphere) Hit(r *Ray, tMin, tMax float64, rec *HitRecord) bool {
+	oc := MinusVectors((*Vector3)(r.origin), (*Vector3)(s.center))
+	a := r.direction.LengthSquare()
+	halfB := Dot(oc, r.direction)
+	c := oc.LengthSquare() - s.radius*s.radius
+
+	discriminant := halfB*halfB - a*c
+	if discriminant < 0 {
+		return false
+	}
+	sqrtd := math.Sqrt(discriminant)
+
+	root := (-halfB - sqrtd) / a
+	if root < tMin || tMax < root {
+		root = (-halfB + sqrtd) / a
+		if root < tMin || tMax < root {
+			return false
+		}
+	}
+
+	rec.t = root
+	rec.p = r.At(rec.t)
+	outwardNormal := DivideVectorByT(MinusVectors((*Vector3)(rec.p), (*Vector3)(s.center)), s.radius)
+	rec.SetFaceNormal(r, outwardNormal)
+	rec.normal = DivideVectorByT(MinusVectors((*Vector3)(rec.p), (*Vector3)(s.center)), s.radius)
+	return true
+}
+
+type HitableList struct {
+	objects []*Sphere
+}
+
+func (h *HitableList) Hit(r *Ray, tMin, tMax float64, rec *HitRecord) bool {
+	tmp := &HitRecord{}
+	isHitAnything := false
+	closestSoFar := tMax
+
+	for _, item := range h.objects {
+		if item.Hit(r, tMin, closestSoFar, tmp) {
+			isHitAnything = true
+			closestSoFar = tmp.t
+			rec = tmp
+		}
+	}
+
+	return isHitAnything
+}
+
 func main() {
 	// Image
 	aspectRatio := 16.0 / 9.0
