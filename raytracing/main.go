@@ -5,6 +5,15 @@ import (
 	"math"
 )
 
+const (
+	pi       = 3.1415926535897932385
+	infinity = math.MaxFloat64
+)
+
+func DegreesToRadian(degrees float64) float64 {
+	return degrees * pi / 180.0
+}
+
 type Vector3 struct {
 	x, y, z float64
 }
@@ -86,16 +95,18 @@ func HitSphere(center *Point3, radius float64, r *Ray) float64 {
 	return (-halfB - math.Sqrt(discriminant)) / a
 }
 
-func RayColor(r *Ray) *Color {
-	t := HitSphere(&Point3{0, 0, -1}, 0.5, r)
-	if t > 0.0 {
-		n := MinusVectors((*Vector3)(r.At(t)), &Vector3{0, 0, -1})
-		tmp := &Vector3{n.x + 1, n.y + 1, n.z + 1}
-		tmp = tmp.Multiply(0.5)
-		return (*Color)(tmp)
-	}
+func RayColor(r *Ray, world *HitableList) *Color {
+	var rec HitRecord
+	world.Hit(r, 0, infinity, &rec)
+	// t := HitSphere(&Point3{0, 0, -1}, 0.5, r)
+	// if t > 0.0 {
+	// 	n := MinusVectors((*Vector3)(r.At(t)), &Vector3{0, 0, -1})
+	// 	tmp := &Vector3{n.x + 1, n.y + 1, n.z + 1}
+	// 	tmp = tmp.Multiply(0.5)
+	// 	return (*Color)(tmp)
+	// }
 	unitDirection := r.direction.UnitVector()
-	t = 0.5 * (unitDirection.y + 1.0)
+	t := 0.5 * (unitDirection.y + 1.0)
 	color1 := &Color{1.0, 1.0, 1.0}
 	color2 := &Color{0.5, 0.7, 1.0}
 
@@ -197,6 +208,7 @@ func (s *Sphere) Hit(r *Ray, tMin, tMax float64, rec *HitRecord) bool {
 	outwardNormal := DivideVectorByT(MinusVectors((*Vector3)(rec.p), (*Vector3)(s.center)), s.radius)
 	rec.SetFaceNormal(r, outwardNormal)
 	rec.normal = DivideVectorByT(MinusVectors((*Vector3)(rec.p), (*Vector3)(s.center)), s.radius)
+
 	return true
 }
 
@@ -226,6 +238,13 @@ func main() {
 	imageWidth := 400
 	imageHeight := int(float64(imageWidth) / aspectRatio)
 
+	// World
+	world := HitableList{
+		objects: []*Sphere{},
+	}
+	world.objects = append(world.objects, &Sphere{center: &Point3{0, 0, -1}, radius: 0.5})
+	world.objects = append(world.objects, &Sphere{center: &Point3{0, -100.5, -1}, radius: 100})
+
 	// Camera
 	viewportHeight := 2.0
 	viewportWidth := aspectRatio * viewportHeight
@@ -236,6 +255,7 @@ func main() {
 	vertical := Vector3{0, viewportHeight, 0}
 	lowerLeftCorner := MinusVectors((*Vector3)(origin), DivideVectorByT(&horizontal, 2), DivideVectorByT(&vertical, 2), &Vector3{0, 0, focalLength})
 
+	// Render
 	fmt.Printf("P3\n%d %d\n255\n", imageWidth, imageHeight)
 
 	for h := imageHeight - 1; h >= 0; h-- {
@@ -248,7 +268,7 @@ func main() {
 				origin:    origin,
 				direction: direction,
 			}
-			color := RayColor(ray)
+			color := RayColor(ray, &world)
 			fmt.Print(color.Write())
 		}
 	}
