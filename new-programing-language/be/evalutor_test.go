@@ -8,11 +8,14 @@ func TestEvalSimple(t *testing.T) {
 	parser := NewParser(lexer)
 	program := parser.ParseProgram()
 	env := NewEnvironment()
-	env.Set("long", &Integer{Value: 13})
+	env.Set("long1", &Integer{Value: 13})
 
 	result := Eval(program, env)
-
-	t.Log(result.ToString())
-	t.Log(result.Type())
+	a, ok := result.(*Error)
+	t.Log(a.Message)
+	t.Log(a)
+	t.Log(ok)
+	// t.Log(result.ToString())
+	// t.Log(result.Type())
 	t.Fail()
 }
