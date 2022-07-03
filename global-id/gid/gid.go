@@ -1,15 +1,27 @@
 package gid
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 // GlobalID ...
 type GlobalID struct {
-	epoch        time.Time
-	timeBits     int
-	sequenceBits int
-	shardBits    int
-	shardID      int64
+	epoch   time.Time
+	shardID int64
+
+	elapsedTime int64
+	sequence    uint16
+
+	mutex *sync.Mutex
 }
+
+const (
+	TimeBits     int    = 41
+	SequenceBits int    = 12
+	ShardBits    int    = 11
+	MaskSequence uint16 = 1<<SequenceBits - 1
+)
 
 // New ...
 func New(shardID int64) *GlobalID {
@@ -19,22 +31,34 @@ func New(shardID int64) *GlobalID {
 	}
 
 	return &GlobalID{
-		timeBits:     41,
-		sequenceBits: 12,
-		shardBits:    11,
-		epoch:        timeline,
+		epoch: timeline,
+		mutex: new(sync.Mutex),
 	}
 }
 
-// Genarate return an id 64 bits
+// GenarateID return an id 64 bits
 // ----------------------------------------------------------
 // |	41 bits		|		12 bits		|		11 bits		|
 // |  (time bits)	|  (sequence bits)	|	 (shard bits)	|
 // ---------------------------------------------------------
-func (g *GlobalID) Genarate() int64 {
+func (g *GlobalID) GenarateID() uint64 {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
 	currentMiliseconds := time.Since(g.epoch.UTC()).Milliseconds()
 
-	sequence := 1<<g.sequenceBits - 1 //TODO: hard code get last sequence, need to find a away get unique number each milisecond(use mutex lock or atomic package)
+	if g.elapsedTime < currentMiliseconds {
+		g.elapsedTime = currentMiliseconds
+		g.sequence = 0
+	} else {
+		g.sequence = (g.sequence + 1) & MaskSequence
+		if g.sequence == 0 {
+			g.elapsedTime++
+			time.Sleep(time.Duration(g.elapsedTime-currentMiliseconds) * 1 * time.Millisecond)
+		}
+	}
 
-	return currentMiliseconds<<(g.sequenceBits+g.shardBits) | int64(sequence)<<int64(g.shardBits) | g.shardID
+	return uint64(g.elapsedTime)<<(SequenceBits+ShardBits) |
+		uint64(g.sequence)<<uint64(ShardBits) |
+		uint64(g.shardID)
 }

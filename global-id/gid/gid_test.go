@@ -10,7 +10,7 @@ func BenchmarkGenerateChan(b *testing.B) {
 
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		_ = shard.Genarate()
+		_ = shard.GenarateID()
 	}
 
 }
@@ -18,9 +18,9 @@ func BenchmarkGenerateChan(b *testing.B) {
 func TestID(t *testing.T) {
 	shard := New(1)
 
-	var mapID = make(map[int64]bool)
-	for i := 0; i < 100000; i++ {
-		id := shard.Genarate()
+	var mapID = make(map[uint64]bool)
+	for i := 0; i < 1000000; i++ {
+		id := shard.GenarateID()
 		if _, ok := mapID[id]; ok {
 			t.Errorf("the id=%d should't repeat", id)
 		}

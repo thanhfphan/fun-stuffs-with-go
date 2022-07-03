@@ -12,5 +12,5 @@ func main() {
 
 	gid := gid.New(1)
 
-	fmt.Printf("ID %d\n", gid.Genarate())
+	fmt.Printf("ID %d\n", gid.GenarateID())
 }
