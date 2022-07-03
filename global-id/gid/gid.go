@@ -38,8 +38,8 @@ func New(shardID int64) *GlobalID {
 
 // GenarateID return an id 64 bits
 // +----------------+-------------------+--------------------+
-// |    41 bits     |      12 bits      |		11 bits		 |
-// |  (time bits)   |  (sequence bits)  |	 (shard bits)	 |
+// |    41 bits     |      12 bits      |       11 bits      |
+// |  (time bits)   |  (sequence bits)  |    (shard bits)    |
 // +----------------+-------------------+--------------------+
 func (g *GlobalID) GenarateID() uint64 {
 	g.mutex.Lock()
