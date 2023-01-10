@@ -1,0 +1,17 @@
+# Golang Generics - Double-ended Queue
+
+```bash
+$ go run main.go
+#0
+#1
+#2
+#3
+#4
+#5
+#6
+#7
+#8
+#9
+#{0}
+
+```
