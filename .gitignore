@@ -13,3 +13,5 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+double-buffering/baseline/baseline
+double-buffering/double-buffer/double-buffer
