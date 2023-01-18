@@ -56,7 +56,7 @@ func run() {
 
 			processData(data2)
 
-			// signal to [processing data] goroutine to begin the work
+			// signal to [generate data] goroutine to begin the work
 			bs.Signal()
 		}
 	}()
