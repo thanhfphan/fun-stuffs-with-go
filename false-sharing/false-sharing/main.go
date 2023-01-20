@@ -8,11 +8,11 @@ import (
 
 func main() {
 	var sum atomic.Int64
-	counters := make([]atomic.Int64, 4)
 
 	n := (1 << 25) // 2^25
 	var wg sync.WaitGroup
 	threads := 4
+	counters := make([]atomic.Int64, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func(idx int) {

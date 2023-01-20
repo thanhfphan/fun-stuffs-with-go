@@ -13,11 +13,11 @@ type S struct {
 
 func main() {
 	var sum atomic.Int64
-	counters := make([]S, 4)
 
 	n := (1 << 25) // 2^25
 	var wg sync.WaitGroup
 	threads := 4
+	counters := make([]S, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func(idx int) {
