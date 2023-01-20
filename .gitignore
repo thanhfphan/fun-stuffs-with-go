@@ -15,3 +15,5 @@
 # vendor/
 double-buffering/baseline/baseline
 double-buffering/double-buffer/double-buffer
+spinlock/mutex/mutex
+spinlock/spinlock/spinlock

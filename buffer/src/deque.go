@@ -11,6 +11,7 @@ type Deque[T any] interface {
 	PeekRight() (T, bool)
 
 	Len() int
+	IsEmpty() bool
 }
 
 func NewDeque[T any](initSize int) Deque[T] {
@@ -98,6 +99,10 @@ func (d *sliceDeque[T]) PeekRight() (T, bool) {
 
 func (d *sliceDeque[T]) Len() int {
 	return d.size
+}
+
+func (d *sliceDeque[T]) IsEmpty() bool {
+	return d.size == 0
 }
 
 func (d *sliceDeque[T]) leftmostIdx() int {
