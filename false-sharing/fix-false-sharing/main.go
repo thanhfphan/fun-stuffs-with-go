@@ -7,7 +7,7 @@ import (
 )
 
 type S struct {
-	_       [56]int64 // the place where magic happenss
+	_       [56]int64 // the place where magic happens
 	Counter atomic.Int64
 }
 
