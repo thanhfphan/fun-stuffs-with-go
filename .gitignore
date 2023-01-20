@@ -17,3 +17,7 @@ double-buffering/baseline/baseline
 double-buffering/double-buffer/double-buffer
 spinlock/mutex/mutex
 spinlock/spinlock/spinlock
+false-sharing/false-sharing/false-sharing
+false-sharing/fix-false-sharing/no-false-sharing
+false-sharing/naive/naive
+false-sharing/fix-false-sharing/fix-false-sharing
