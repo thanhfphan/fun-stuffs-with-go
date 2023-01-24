@@ -21,3 +21,5 @@ false-sharing/false-sharing/false-sharing
 false-sharing/fix-false-sharing/no-false-sharing
 false-sharing/naive/naive
 false-sharing/fix-false-sharing/fix-false-sharing
+blocking-and-non-blocking/blocking/blocking
+blocking-and-non-blocking/non-blocking/non-blocking
