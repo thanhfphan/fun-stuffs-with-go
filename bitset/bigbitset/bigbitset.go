@@ -38,7 +38,7 @@ func (b BigBitSet) Union(other BigBitSet) {
 }
 
 func (b BigBitSet) Intersection(other BigBitSet) {
-	b.bits.Add(b.bits, other.bits)
+	b.bits.And(b.bits, other.bits)
 }
 
 // Difference removes all the elements in [other] from [b]
