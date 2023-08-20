@@ -33,6 +33,7 @@ func main() {
 }
 
 func convertUint64ToBase62String(n uint64) string {
+
 	var result []byte
 
 	for n != 0 {
